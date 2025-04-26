@@ -1,0 +1,75 @@
+#Name = Presha Vaishnav
+#Importing libraries
+import cv2
+import mediapipe as mp
+import pyautogui
+
+#Distance variable
+x1 = y1 = x2 = y2 = 0
+
+#For capturing the image from the camera
+webcam = cv2.VideoCapture(0)
+your_hands = mp.solutions.hands.Hands()
+
+#initiating the module
+drawing_utils = mp.solutions.drawing_utils
+mp_drawing = mp.solutions.drawing_utils
+
+#Reading the image
+while True:
+    _ , image = webcam.read()
+    
+    #Fliping the image
+    image = cv2.flip(image,1)
+    
+    #Reading the image frame by frame
+    frame_height, frame_width, _ = image.shape
+    
+    #Converting the bgr to rgb image
+    rgb_image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+    
+    #Processing the rgb image
+    output = your_hands.process(rgb_image)
+    
+    #If hands are present in the frame/camera
+    hands = output.multi_hand_landmarks
+    
+    #If any hand is present in the frame/camera
+    if hands:
+        for hand in hands:
+            
+            #landamrks will be drawn on hand/image
+            drawing_utils.draw_landmarks(image, hand)
+            landmarks = hand.landmark
+            
+            #landmark notations
+            for id, landmark in enumerate(landmarks):
+                x = int(landmark.x * frame_width)
+                y = int(landmark.y * frame_height)
+
+            #lables for hands in the frame/image
+                if id == 8:
+                    cv2.circle(img=image,center=(x,y),radius=8,color=(0,255,255),thickness=3)
+                    x1 = x
+                    y1 = y
+                if id == 4:
+                    cv2.circle(img=image,center=(x,y),radius=8,color=(0,0,255),thickness=3)
+                    x2 = x 
+                    y2 = y
+        
+        #Formula for calculating the distance for processing the level of volume
+        dist = ((x2-x1)**2 + (y2-y1)**2)**(0.5)//4
+        cv2.line(image,(x1,y1),(x2,y2),(0,255,0),5)
+        
+        if dist > 50 :
+            pyautogui.press("volumeup")
+        else:
+            pyautogui.press("volumedown")
+
+#Showing hand in the frame with landmarks
+    cv2.imshow("Hand volume control using python" ,image)
+    key = cv2.waitKey(10)
+    if key == 27:
+        break
+webcam.release()
+cv2.destroyAllWindows()
